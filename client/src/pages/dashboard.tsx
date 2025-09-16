@@ -8,16 +8,50 @@ import EarningsCalculator from "@/components/dashboard/earnings-calculator";
 import PaymentPanel from "@/components/dashboard/payment-panel";
 import BlockchainStatus from "@/components/dashboard/blockchain-status";
 
+interface DashboardData {
+  privacyScore: number;
+  monthlyEarnings: number;
+  activePermissions: number;
+  pendingPermissions: number;
+  dataRequests: number;
+  permissions: Array<{
+    id: string;
+    companyName: string;
+    companyLogo?: string;
+    accessTypes: string[];
+    monthlyPayment: number;
+    status: string;
+  }>;
+}
+
+interface PrivacyData {
+  google?: number;
+  facebook?: number;
+  instagram?: number;
+  other?: number;
+}
+
+interface EarningsData {
+  availableBalance: number;
+  pendingPayments: number;
+  transactions: Array<{
+    id: string;
+    amount: number;
+    status: string;
+    createdAt: string;
+  }>;
+}
+
 export default function Dashboard() {
-  const { data: dashboardData, isLoading } = useQuery({
+  const { data: dashboardData, isLoading } = useQuery<DashboardData>({
     queryKey: ["/api/dashboard"],
   });
 
-  const { data: privacyData } = useQuery({
+  const { data: privacyData } = useQuery<PrivacyData>({
     queryKey: ["/api/privacy"],
   });
 
-  const { data: earningsData } = useQuery({
+  const { data: earningsData } = useQuery<EarningsData>({
     queryKey: ["/api/earnings"],
   });
 
