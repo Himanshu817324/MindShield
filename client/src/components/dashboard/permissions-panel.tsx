@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Shield, CheckCircle, Clock, XCircle, Settings, Eye, DollarSign, Calendar } from "lucide-react";
+import { Plus, Users, Shield, CheckCircle, Clock, XCircle, Eye, DollarSign } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";

@@ -1,5 +1,5 @@
 
-import { Bell, RefreshCw, LogOut, Shield, BarChart3, ShieldCheck, Coins, Settings, History, Wallet } from "lucide-react";
+import { Bell, RefreshCw, LogOut, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";

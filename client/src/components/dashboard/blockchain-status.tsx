@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Link, File, Fuel, Wallet, AlertCircle, Database, Zap, Lock, Copy, ExternalLink, RefreshCw } from "lucide-react";
+import { CheckCircle, File, Fuel, Wallet, AlertCircle, Database, Zap, Lock, Copy, ExternalLink, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { useMutation, useQuery } from "@tanstack/react-query";

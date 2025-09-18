@@ -1,4 +1,3 @@
-import React from 'react';
 import { Shield, IndianRupee, Key, Database } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
