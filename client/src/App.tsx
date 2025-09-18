@@ -19,7 +19,9 @@ import ConsentHistory from "@/pages/consent-history";
 import FAQ from "@/pages/faq";
 
 function Router() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  console.log('🔄 Router: isAuthenticated =', isAuthenticated, 'isLoading =', isLoading);
 
   return (
     <Switch>

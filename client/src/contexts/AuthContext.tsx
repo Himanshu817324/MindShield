@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://mindshield-va14.onrender.com';
 
 interface User {
   id: string;
@@ -68,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
+    console.log('🔐 AuthContext: Starting login process...');
+    console.log('🌐 API_BASE_URL:', API_BASE_URL);
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -78,19 +80,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('📡 Login response status:', response.status);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('❌ Login error response:', error);
         throw new Error(error.message || 'Login failed');
       }
 
       const data = await response.json();
+      console.log('✅ Login response data:', data);
       
       if (!data.token || !data.user) {
         throw new Error('Invalid response from server');
       }
       
+      console.log('💾 Saving auth data...');
       saveAuth(data.token, data.user);
+      console.log('✅ Auth data saved, user should be authenticated now');
     } catch (error) {
+      console.error('❌ Login error:', error);
       if (error instanceof Error) {
         throw error;
       }

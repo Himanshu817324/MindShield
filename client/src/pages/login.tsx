@@ -31,13 +31,19 @@ export default function Login() {
     setIsLoading(true);
 
     try {
+      console.log('🔐 Attempting login...');
       await login(formData.email, formData.password);
+      console.log('✅ Login successful, redirecting...');
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
-      setLocation("/dashboard");
+      // Add a small delay to ensure state is updated
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 100);
     } catch (error) {
+      console.error('❌ Login failed:', error);
       toast({
         title: "Login Failed",
         description:
