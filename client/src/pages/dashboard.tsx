@@ -73,19 +73,23 @@ export default function Dashboard() {
         <div className="p-6 space-y-6">
           <MetricsGrid data={dashboardData} />
           
-          <ChartsSection 
-            privacyData={privacyData} 
-            earningsData={earningsData} 
-          />
+          <div id="privacy-section">
+            <ChartsSection 
+              privacyData={privacyData} 
+              earningsData={earningsData} 
+            />
+          </div>
           
           <PermissionsPanel permissions={dashboardData?.permissions || []} />
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div id="earnings-section" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <EarningsCalculator />
             <PaymentPanel earningsData={earningsData} />
           </div>
           
-          <BlockchainStatus />
+          <div id="settings-section">
+            <BlockchainStatus />
+          </div>
         </div>
       </main>
     </div>

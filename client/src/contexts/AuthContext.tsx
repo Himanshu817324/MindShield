@@ -29,8 +29,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = localStorage.getItem('auth_user');
     
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        // Basic token validation - check if it's not expired
+        const tokenPayload = JSON.parse(atob(storedToken.split('.')[1]));
+        const currentTime = Date.now() / 1000;
+        
+        if (tokenPayload.exp && tokenPayload.exp > currentTime) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        } else {
+          // Token expired, clear storage
+          clearAuth();
+        }
+      } catch (error) {
+        // Invalid token format, clear storage
+        clearAuth();
+      }
     }
     setIsLoading(false);
   }, []);
@@ -52,39 +66,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Login failed');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Login failed');
+      }
+
+      const data = await response.json();
+      
+      if (!data.token || !data.user) {
+        throw new Error('Invalid response from server');
+      }
+      
+      saveAuth(data.token, data.user);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Network error. Please check your connection.');
     }
-
-    const data = await response.json();
-    saveAuth(data.token, data.user);
   };
 
   const register = async (username: string, email: string, password: string) => {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, email, password }),
-    });
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, email, password }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Registration failed');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Registration failed');
+      }
+
+      const data = await response.json();
+      
+      if (!data.token || !data.user) {
+        throw new Error('Invalid response from server');
+      }
+      
+      saveAuth(data.token, data.user);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Network error. Please check your connection.');
     }
-
-    const data = await response.json();
-    saveAuth(data.token, data.user);
   };
 
   const logout = () => {

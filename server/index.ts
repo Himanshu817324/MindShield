@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { blockchainEventManager } from "./blockchain-events";
 
 const app = express();
 app.use(express.json());
@@ -61,11 +62,14 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  server.listen(port, "localhost", () => {
     log(`serving on port ${port}`);
+    
+    // Start blockchain event listeners
+    try {
+      blockchainEventManager.startListening();
+    } catch (error) {
+      log(`⚠️  Blockchain event listeners not started: ${error.message}`);
+    }
   });
 })();

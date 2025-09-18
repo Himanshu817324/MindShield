@@ -5,25 +5,40 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 import { authenticateToken, generateToken, type AuthenticatedRequest } from "./middleware/auth";
 import { insertUserSchema, insertPermissionSchema } from "@shared/schema";
+import { getBlockchainService } from "./blockchain";
 import { z } from "zod";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+// Initialize Stripe only if key is provided
+let stripe: Stripe | null = null;
+if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_your_stripe_secret_key_here') {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2025-08-27.basil",
+  });
+} else {
+  console.log('⚠️  Stripe not configured. Payment features will be disabled.');
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-08-27.basil",
-});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
+      console.log('🔍 Register request:', { email: req.body.email, username: req.body.username });
+      
       const userData = insertUserSchema.parse(req.body);
       
+      // Additional validation
+      if (userData.password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+
+      if (userData.username.length < 3) {
+        return res.status(400).json({ message: "Username must be at least 3 characters long" });
+      }
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
+        console.log('❌ User already exists:', userData.email);
         return res.status(400).json({ message: "User already exists" });
       }
 
@@ -35,9 +50,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword
       });
 
+      console.log('✅ User created:', { id: user.id, email: user.email });
+
       const token = generateToken(user.id);
-      res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+      console.log('✅ Token generated for user:', user.id);
+      
+      res.json({ 
+        token, 
+        user: { 
+          id: user.id, 
+          username: user.username, 
+          email: user.email 
+        } 
+      });
     } catch (error: any) {
+      console.log('❌ Register error:', error.message);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid input data" });
+      }
       res.status(400).json({ message: error.message });
     }
   });
@@ -45,21 +75,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
+      console.log('🔍 Login request:', { email });
       
+      // Validate input
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email format" });
+      }
+
       const user = await storage.getUserByEmail(email);
+      console.log('🔍 User lookup result:', { found: !!user, id: user?.id });
+      
       if (!user) {
+        console.log('❌ User not found for email:', email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       const isValidPassword = await bcrypt.compare(password, user.password);
+      console.log('🔍 Password validation:', { isValid: isValidPassword });
+      
       if (!isValidPassword) {
+        console.log('❌ Invalid password for user:', email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       const token = generateToken(user.id);
-      res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+      console.log('✅ Login successful, token generated for user:', user.id);
+      
+      res.json({ 
+        token, 
+        user: { 
+          id: user.id, 
+          username: user.username, 
+          email: user.email 
+        } 
+      });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      console.log('❌ Login error:', error.message);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
@@ -101,6 +159,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const permissionData = insertPermissionSchema.parse(req.body);
       const permission = await storage.createPermission(req.userId!, permissionData);
+      res.json(permission);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/permissions/approve", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { permissionId } = req.body;
+      const permission = await storage.updatePermissionStatus(permissionId, "active");
       res.json(permission);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -164,6 +232,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!amount || amount <= 0) {
         return res.status(400).json({ message: "Valid amount is required" });
+      }
+
+      if (!stripe) {
+        // Mock payment for development
+        console.log(`🔧 Mock: Processing payment of ${amount} for user ${req.userId}`);
+        return res.json({ 
+          clientSecret: 'pi_mock_' + Math.random().toString(36).substr(2, 9),
+          checkoutUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/checkout?payment_intent=pi_mock_${Math.random().toString(36).substr(2, 9)}`
+        });
       }
 
       const paymentIntent = await stripe.paymentIntents.create({
@@ -242,6 +319,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
         permissions,
         footprints
       });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Blockchain routes
+  app.post("/api/blockchain/register", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { username, walletAddress } = req.body;
+      
+      if (!username || !walletAddress) {
+        return res.status(400).json({ message: "Username and wallet address are required" });
+      }
+
+      const blockchain = getBlockchainService();
+      const txHash = await blockchain.registerUser(username, walletAddress);
+      
+      // Update user with wallet address
+      await storage.updateUserStripeInfo(req.userId!, '', '', walletAddress);
+      
+      res.json({ txHash, message: "User registered on blockchain successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/blockchain/grant-access", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { companyAddress, dataTypes, monthlyPayment, durationMonths, walletAddress } = req.body;
+      
+      if (!companyAddress || !dataTypes || !monthlyPayment || !durationMonths || !walletAddress) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      const blockchain = getBlockchainService();
+      const txHash = await blockchain.grantAccess({
+        user: walletAddress,
+        company: companyAddress,
+        dataTypes,
+        monthlyPayment,
+        durationMonths
+      }, walletAddress);
+      
+      res.json({ txHash, message: "Access granted on blockchain successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/blockchain/revoke-access", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { companyAddress, walletAddress } = req.body;
+      
+      if (!companyAddress || !walletAddress) {
+        return res.status(400).json({ message: "Company address and wallet address are required" });
+      }
+
+      const blockchain = getBlockchainService();
+      const txHash = await blockchain.revokeAccess(companyAddress, walletAddress);
+      
+      res.json({ txHash, message: "Access revoked on blockchain successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/blockchain/earnings/:walletAddress", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const blockchain = getBlockchainService();
+      const earnings = await blockchain.getUserEarnings(walletAddress);
+      
+      res.json({ earnings });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/blockchain/licenses/:walletAddress", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const blockchain = getBlockchainService();
+      const licenseIds = await blockchain.getUserLicenses(walletAddress);
+      
+      // Get detailed license information
+      const licenses = await Promise.all(
+        licenseIds.map(id => blockchain.getLicenseDetails(id))
+      );
+      
+      res.json({ licenses });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/blockchain/access-status/:walletAddress/:companyAddress", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { walletAddress, companyAddress } = req.params;
+      
+      const blockchain = getBlockchainService();
+      const isActive = await blockchain.isAccessActive(walletAddress, companyAddress);
+      
+      res.json({ isActive });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
