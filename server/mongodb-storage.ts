@@ -43,8 +43,16 @@ export class MongoDBStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const user = await this.db.collection('users').findOne({ email });
-    return user || undefined;
+    console.log('🔍 MongoDB getUserByEmail called with:', email);
+    
+    try {
+      const user = await this.db.collection('users').findOne({ email });
+      console.log('🔍 MongoDB findOne result for email:', email, 'found:', !!user);
+      return user || undefined;
+    } catch (error) {
+      console.error('❌ MongoDB getUserByEmail error:', error);
+      return undefined;
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

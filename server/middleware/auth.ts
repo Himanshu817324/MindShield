@@ -3,6 +3,13 @@ import { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || 'mindshield-super-secret-key-2024';
+console.log('🔍 JWT Secret check:', { 
+  hasJwtSecret: !!process.env.JWT_SECRET,
+  hasSessionSecret: !!process.env.SESSION_SECRET,
+  jwtSecretLength: process.env.JWT_SECRET?.length || 0,
+  sessionSecretLength: process.env.SESSION_SECRET?.length || 0,
+  usingDefault: !process.env.JWT_SECRET && !process.env.SESSION_SECRET
+});
 
 export interface AuthenticatedRequest extends Request {
   user?: any;

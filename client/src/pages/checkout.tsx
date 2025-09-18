@@ -10,8 +10,8 @@ import { useLocation } from "wouter";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
-const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_your_stripe_public_key_here';
+const stripePromise = stripeKey && stripeKey !== 'pk_test_your_stripe_public_key_here' ? loadStripe(stripeKey) : null;
 
 const CheckoutForm = ({ amount }: { amount: number }) => {
   const stripe = useStripe();
@@ -187,14 +187,31 @@ export default function Checkout() {
           </Button>
         </div>
 
-        <div className="text-center">
-          <p className="text-muted-foreground mb-4">
-            Payment processing is currently unavailable. Please try again later.
-          </p>
-          <Button onClick={() => setLocation("/dashboard")}>
-            Return to Dashboard
-          </Button>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center text-orange-600">Stripe Not Configured</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center">
+              <p className="text-muted-foreground mb-4">
+                Payment processing is not available because Stripe keys are not configured.
+              </p>
+              <div className="bg-muted/50 p-4 rounded-lg text-left text-sm">
+                <p className="font-medium mb-2">To enable payments:</p>
+                <ol className="list-decimal list-inside space-y-1 text-xs">
+                  <li>Get your Stripe keys from <a href="https://dashboard.stripe.com/test/apikeys" target="_blank" className="text-primary hover:underline">Stripe Dashboard</a></li>
+                  <li>Create a <code>.env</code> file in the project root</li>
+                  <li>Add <code>VITE_STRIPE_PUBLIC_KEY=pk_test_...</code></li>
+                  <li>Add <code>STRIPE_SECRET_KEY=sk_test_...</code></li>
+                  <li>Restart the development server</li>
+                </ol>
+              </div>
+            </div>
+            <Button onClick={() => setLocation("/dashboard")} className="w-full">
+              Return to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

@@ -310,7 +310,9 @@ if (isMongoDB) {
   mongoClient = new MongoClient(process.env.DATABASE_URL!);
   mongoClient.connect().then(() => {
     console.log('✅ MongoDB connected for storage');
-  }).catch(console.error);
+  }).catch((error) => {
+    console.error('❌ MongoDB connection failed:', error);
+  });
 }
 
 // Use MongoDB if configured, MockStorage in development, otherwise DatabaseStorage

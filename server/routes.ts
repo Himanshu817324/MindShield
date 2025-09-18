@@ -10,12 +10,22 @@ import { z } from "zod";
 
 // Initialize Stripe only if key is provided
 let stripe: Stripe | null = null;
-if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_your_stripe_secret_key_here') {
-  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+console.log('🔍 Stripe Secret Key check:', { 
+  hasKey: !!stripeSecretKey, 
+  keyLength: stripeSecretKey?.length || 0,
+  startsWithSk: stripeSecretKey?.startsWith('sk_') || false
+});
+
+if (stripeSecretKey && stripeSecretKey !== 'sk_test_your_stripe_secret_key_here' && stripeSecretKey.startsWith('sk_')) {
+  stripe = new Stripe(stripeSecretKey, {
     apiVersion: "2025-08-27.basil",
   });
+  console.log('✅ Stripe configured successfully');
 } else {
   console.log('⚠️  Stripe not configured. Payment features will be disabled.');
+  console.log('💡 To enable Stripe payments, set STRIPE_SECRET_KEY environment variable');
+  console.log('🔍 Current STRIPE_SECRET_KEY value:', stripeSecretKey);
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
