@@ -1,4 +1,5 @@
-const hre = require("hardhat");
+import hre from "hardhat";
+import fs from 'fs';
 
 async function main() {
   console.log("Starting deployment...");
@@ -17,7 +18,6 @@ async function main() {
   console.log("DataLicense deployed to:", contractAddress);
   
   // Save deployment info
-  const fs = require('fs');
   const deploymentInfo = {
     contractAddress: contractAddress,
     network: hre.network.name,
@@ -27,11 +27,11 @@ async function main() {
   };
   
   // Update config file
-  const configPath = './blockchain/config.js';
+  const configPath = './config.js';
   const configContent = `// Auto-generated deployment configuration
 // Last updated: ${deploymentInfo.timestamp}
 
-module.exports = {
+export default {
   contractAddress: "${contractAddress}",
   network: "${hre.network.name}",
   chainId: ${hre.network.config.chainId || 'unknown'},

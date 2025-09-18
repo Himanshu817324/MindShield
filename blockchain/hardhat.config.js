@@ -1,8 +1,11 @@
-require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config();
+// hardhat.config.js
+import "@nomicfoundation/hardhat-toolbox";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+const config = {
   solidity: {
     version: "0.8.19",
     settings: {
@@ -17,7 +20,7 @@ module.exports = {
       chainId: 31337
     },
     mumbai: {
-      url: process.env.POLYGON_MUMBAI_RPC || "https://rpc-mumbai.maticvigil.com",
+      url: process.env.POLYGON_MUMBAI_RPC || "https://polygon-mumbai.g.alchemy.com/v2/demo",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 80001,
       gas: 2100000,
@@ -41,3 +44,5 @@ module.exports = {
     artifacts: "./artifacts"
   }
 };
+
+export default config;
