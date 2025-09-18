@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
 import { blockchainEventManager } from "./blockchain-events";
 
 const app = express();
@@ -31,7 +30,7 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      log(logLine);
+      console.log(logLine);
     }
   });
 
@@ -49,28 +48,31 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+  // Add CORS middleware for frontend communication
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
+  // Serve the API on the port specified in the environment variable PORT
+  // Default to 5000 if not specified.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen(port, "localhost", () => {
-    log(`serving on port ${port}`);
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`🚀 Server running on port ${port}`);
+    console.log(`📡 API available at http://localhost:${port}/api`);
     
     // Start blockchain event listeners
     try {
       blockchainEventManager.startListening();
     } catch (error) {
-      log(`⚠️  Blockchain event listeners not started: ${error.message}`);
+      console.log(`⚠️  Blockchain event listeners not started: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 })();

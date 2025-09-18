@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import { MongoClient } from 'mongodb';
 import ws from "ws";
 import { randomUUID } from 'crypto';
-import * as schema from "@shared/schema";
+import * as schema from "../shared/schema";
 
 // Check if we have a MongoDB URL
 const isMongoDB = process.env.DATABASE_URL?.includes('mongodb');

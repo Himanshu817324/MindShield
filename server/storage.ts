@@ -2,7 +2,7 @@ import {
   users, permissions, earnings, privacyFootprints,
   type User, type InsertUser, type Permission, type InsertPermission,
   type Earning, type InsertEarning, type PrivacyFootprint, type InsertPrivacyFootprint
-} from "@shared/schema";
+} from "../shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { MongoDBStorage } from "./mongodb-storage";

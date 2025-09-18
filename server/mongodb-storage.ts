@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import { 
   type User, type InsertUser, type Permission, type InsertPermission,
   type Earning, type InsertEarning, type PrivacyFootprint, type InsertPrivacyFootprint
-} from "@shared/schema";
+} from "../shared/schema";
 
 export interface IStorage {
   // User operations

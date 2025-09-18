@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { authenticateToken, generateToken, type AuthenticatedRequest } from "./middleware/auth";
-import { insertUserSchema, insertPermissionSchema } from "@shared/schema";
+import { insertUserSchema, insertPermissionSchema } from "../shared/schema";
 import { getBlockchainService } from "./blockchain";
 import { z } from "zod";
 

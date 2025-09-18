@@ -1,0 +1,24 @@
+{
+  "name": "mindshield-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MindShield Backend API Server",
+  "main": "simple-server.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development node simple-server.js",
+    "build": "echo 'No build step needed for simple server'",
+    "start": "cross-env NODE_ENV=production node simple-server.js",
+    "check": "echo 'No type checking for simple server'"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dotenv": "^17.2.2",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.19.0",
+    "stripe": "^18.5.0"
+  },
+  "devDependencies": {}
+}

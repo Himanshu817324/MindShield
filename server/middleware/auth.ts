@@ -49,7 +49,7 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
     console.log('✅ Authentication successful');
     next();
   } catch (error) {
-    console.log('❌ Token verification failed:', error.message);
+    console.log('❌ Token verification failed:', error instanceof Error ? error.message : 'Unknown error');
     return res.status(403).json({ message: 'Invalid or expired token' });
   }
 };
