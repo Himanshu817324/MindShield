@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CreditCard, History } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+import { CreditCard, History, Calculator, TrendingUp, Wallet, Download, Plus, Minus, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +22,7 @@ interface PaymentPanelProps {
   };
 }
 
+// PaymentPanel Component
 export default function PaymentPanel({ earningsData }: PaymentPanelProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -61,45 +65,63 @@ export default function PaymentPanel({ earningsData }: PaymentPanelProps) {
   ];
 
   return (
-    <Card>
+    <Card className="bg-gray-800/50 backdrop-blur-sm border-gray-700">
       <CardContent className="p-6">
-        <h3 className="text-lg font-semibold mb-6">Payment & Withdrawals</h3>
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-white" />
+          </div>
+          <h3 className="text-lg font-semibold text-white">Payment & Withdrawals</h3>
+        </div>
         
         <div className="space-y-4">
-          <div className="p-4 bg-secondary rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-muted-foreground">Available Balance</span>
-              <span 
-                className="font-bold text-green-600" 
-                data-testid="text-available-balance"
-              >
-                ₹{availableBalance.toLocaleString()}
-              </span>
+          {/* Balance Cards */}
+          <div className="grid grid-cols-1 gap-4">
+            <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="w-5 h-5 text-green-400" />
+                  <span className="text-sm text-green-300">Available Balance</span>
+                </div>
+                <span 
+                  className="text-xl font-bold text-green-400" 
+                  data-testid="text-available-balance"
+                >
+                  ₹{availableBalance.toLocaleString()}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Pending Payments</span>
-              <span 
-                className="font-medium" 
-                data-testid="text-pending-payments"
-              >
-                ₹{pendingPayments.toLocaleString()}
-              </span>
+            
+            <div className="p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <History className="w-5 h-5 text-yellow-400" />
+                  <span className="text-sm text-yellow-300">Pending Payments</span>
+                </div>
+                <span 
+                  className="text-xl font-bold text-yellow-400" 
+                  data-testid="text-pending-payments"
+                >
+                  ₹{pendingPayments.toLocaleString()}
+                </span>
+              </div>
             </div>
           </div>
           
+          {/* Action Buttons */}
           <div className="space-y-3">
             <Button 
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0 font-medium"
               onClick={handleWithdraw}
               data-testid="button-withdraw"
             >
-              <CreditCard className="mr-2 h-4 w-4" />
+              <Download className="mr-2 h-4 w-4" />
               Withdraw to Bank Account
             </Button>
             
             <Button 
               variant="outline" 
-              className="w-full font-medium"
+              className="w-full font-medium border-gray-600 text-gray-300 hover:text-blue-400 hover:border-blue-500/50"
               data-testid="button-view-transactions"
             >
               <History className="mr-2 h-4 w-4" />
@@ -107,23 +129,31 @@ export default function PaymentPanel({ earningsData }: PaymentPanelProps) {
             </Button>
           </div>
           
-          <div className="pt-4 border-t border-border">
-            <h4 className="font-medium mb-3">Recent Transactions</h4>
+          {/* Recent Transactions */}
+          <div className="pt-4 border-t border-gray-700">
+            <h4 className="font-medium mb-3 text-white">Recent Transactions</h4>
             <div className="space-y-2">
               {recentTransactions.map((transaction, index) => (
                 <div 
                   key={index}
-                  className="flex justify-between items-center text-sm"
+                  className="flex justify-between items-center p-2 bg-gray-700/30 rounded-lg border border-gray-600/50"
                   data-testid={`transaction-${index}`}
                 >
-                  <span>{transaction.description}</span>
-                  <span 
-                    className={`font-mono ${
-                      transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                    }`}
-                  >
-                    {transaction.type === 'credit' ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString()}
-                  </span>
+                  <span className="text-gray-300">{transaction.description}</span>
+                  <div className="flex items-center space-x-1">
+                    {transaction.type === 'credit' ? (
+                      <ArrowUpRight className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <ArrowDownRight className="w-4 h-4 text-red-400" />
+                    )}
+                    <span 
+                      className={`font-mono font-medium ${
+                        transaction.type === 'credit' ? 'text-green-400' : 'text-red-400'
+                      }`}
+                    >
+                      {transaction.type === 'credit' ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

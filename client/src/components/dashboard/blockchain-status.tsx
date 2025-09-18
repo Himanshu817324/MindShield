@@ -1,18 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Link, File, Fuel, Wallet, AlertCircle } from "lucide-react";
+import { CheckCircle, Link, File, Fuel, Wallet, AlertCircle, Database, Zap, Lock, Copy, ExternalLink, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-// import { useState } from "react";
+import { useState } from "react";
 
 const CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000' as string; // Will be updated after deployment
 
 export default function BlockchainStatus() {
   const { toast } = useToast();
   const { account, connectWallet, isConnected, isLoading: walletLoading, error: walletError } = useWeb3();
-  // const [isProcessing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Get blockchain earnings
   const { data: blockchainEarnings } = useQuery({
@@ -25,26 +25,6 @@ export default function BlockchainStatus() {
     queryKey: ["/api/blockchain/licenses", account],
     enabled: !!account,
   });
-
-  // const registerUserMutation = useMutation({
-  //   mutationFn: async (data: { username: string; walletAddress: string }) => {
-  //     const response = await apiRequest("POST", "/api/blockchain/register", data);
-  //     return response.json();
-  //   },
-  //   onSuccess: () => {
-  //     toast({
-  //       title: "Success",
-  //       description: "User registered on blockchain successfully!",
-  //     });
-  //   },
-  //   onError: (error: any) => {
-  //     toast({
-  //       title: "Error",
-  //       description: error.message || "Failed to register user on blockchain",
-  //       variant: "destructive",
-  //     });
-  //   },
-  // });
 
   const grantAccessMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -153,44 +133,76 @@ export default function BlockchainStatus() {
     });
   };
 
+  const refresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 2000);
+  };
+
+  const copyAddress = (address: string) => {
+    navigator.clipboard.writeText(address);
+    toast({
+      title: "Copied",
+      description: "Address copied to clipboard",
+    });
+  };
+
   return (
-    <Card>
+    <Card className="bg-gray-800/50 backdrop-blur-sm border-gray-700">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold">Blockchain Status</h3>
-          {isConnected ? (
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <span className="text-sm text-green-600">Connected</span>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <Database className="w-5 h-5 text-white" />
             </div>
-          ) : (
+            <h3 className="text-lg font-semibold text-white">Blockchain Status</h3>
+          </div>
+          <div className="flex items-center space-x-3">
             <Button
-              onClick={handleConnectWallet}
-              disabled={walletLoading}
-              className="flex items-center space-x-2"
+              variant="outline"
+              size="sm"
+              onClick={refresh}
+              disabled={refreshing}
+              className="border-gray-600 text-gray-300 hover:text-cyan-400 hover:border-cyan-500/50"
             >
-              <Wallet className="w-4 h-4" />
-              <span>{walletLoading ? "Connecting..." : "Connect Wallet"}</span>
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Refresh
             </Button>
-          )}
+            {isConnected ? (
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <span className="text-sm text-green-400 font-medium">Connected</span>
+              </div>
+            ) : (
+              <Button
+                onClick={handleConnectWallet}
+                disabled={walletLoading}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                <span>{walletLoading ? "Connecting..." : "Connect Wallet"}</span>
+              </Button>
+            )}
+          </div>
         </div>
 
         {!isConnected ? (
           <div className="text-center py-8">
-            <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">
+            <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-300 mb-4 text-lg font-medium">
               Connect your wallet to interact with the blockchain
             </p>
             {walletError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600 mb-2">
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <p className="text-sm text-red-400 mb-3">
                   <strong>Wallet Error:</strong> {walletError}
                 </p>
-                <div className="text-xs text-red-500 space-y-2">
+                <div className="text-xs text-red-300 space-y-2 text-left">
                   <p>You can still use other app features without a wallet. Install MetaMask to unlock blockchain features.</p>
-                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
-                    <p className="font-medium text-blue-800 mb-1">Why We Need Your Wallet:</p>
-                    <ul className="text-blue-700 space-y-1">
+                  <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded">
+                    <p className="font-medium text-blue-300 mb-2">Why We Need Your Wallet:</p>
+                    <ul className="text-blue-400 space-y-1">
                       <li>• Prove data ownership and control access</li>
                       <li>• Receive transparent payments for your data</li>
                       <li>• Execute smart contracts automatically</li>
@@ -200,84 +212,126 @@ export default function BlockchainStatus() {
                 </div>
               </div>
             )}
-            <Button onClick={handleConnectWallet} disabled={walletLoading}>
+            <Button 
+              onClick={handleConnectWallet} 
+              disabled={walletLoading}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+            >
               {walletLoading ? "Connecting..." : "Connect Wallet"}
             </Button>
           </div>
         ) : (
           <>
+            {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-4 border border-border rounded-lg">
-                <div className="text-2xl font-bold text-primary">
+              <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Wallet className="w-5 h-5 text-green-400" />
+                  <span className="text-green-400 font-semibold">Total Earnings</span>
+                </div>
+                <div className="text-2xl font-bold text-white">
                   {(blockchainEarnings as any)?.earnings || "0.00"} ETH
                 </div>
-                <div className="text-sm text-muted-foreground">Total Earnings</div>
               </div>
-              <div className="text-center p-4 border border-border rounded-lg">
-                <div className="text-2xl font-bold text-primary">
+              
+              <div className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <File className="w-5 h-5 text-blue-400" />
+                  <span className="text-blue-400 font-semibold">Active Licenses</span>
+                </div>
+                <div className="text-2xl font-bold text-white">
                   {(blockchainLicenses as any)?.licenses?.length || 0}
                 </div>
-                <div className="text-sm text-muted-foreground">Active Licenses</div>
               </div>
-              <div className="text-center p-4 border border-border rounded-lg">
-                <div className="text-2xl font-bold text-primary">
-                  {account ? `${account.slice(0, 6)}...${account.slice(-4)}` : "N/A"}
+              
+              <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Lock className="w-5 h-5 text-purple-400" />
+                  <span className="text-purple-400 font-semibold">Wallet Address</span>
                 </div>
-                <div className="text-sm text-muted-foreground">Wallet Address</div>
+                <div className="text-lg font-bold text-white flex items-center">
+                  {account ? `${account.slice(0, 6)}...${account.slice(-4)}` : "N/A"}
+                  {account && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyAddress(account)}
+                      className="ml-2 p-1 h-auto hover:bg-purple-500/20"
+                    >
+                      <Copy className="w-4 h-4 text-purple-400" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Wallet Information */}
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg mb-4">
-              <h4 className="font-medium text-green-800 mb-2">✅ Your Wallet is Securely Connected</h4>
-              <div className="text-sm text-green-700 space-y-1">
+            {/* Security Information */}
+            <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg mb-6">
+              <h4 className="font-semibold text-green-400 mb-3 flex items-center">
+                <CheckCircle className="w-5 h-5 mr-2" />
+                Your Wallet is Securely Connected
+              </h4>
+              <div className="text-sm text-green-300 space-y-2">
                 <p><strong>What we store:</strong> Only your public wallet address and transaction hashes</p>
                 <p><strong>What we don't store:</strong> Your private keys, seed phrase, or personal data</p>
                 <p><strong>Your control:</strong> You can disconnect anytime and revoke all permissions</p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <File className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">DataLicense Contract</div>
-                    <div className="text-sm text-muted-foreground">
-                      {CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000" 
-                        ? "Not Deployed" 
-                        : `${CONTRACT_ADDRESS.slice(0, 6)}...${CONTRACT_ADDRESS.slice(-4)}`}
+            {/* Network Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="p-4 bg-gray-700/30 border border-gray-600 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <File className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <div className="font-medium text-white">DataLicense Contract</div>
+                      <div className="text-sm text-gray-400 font-mono">
+                        {CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000" 
+                          ? "Not Deployed" 
+                          : `${CONTRACT_ADDRESS.slice(0, 6)}...${CONTRACT_ADDRESS.slice(-4)}`}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Link className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">View</span>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="ghost" size="sm" className="p-1 h-auto hover:bg-gray-600/50">
+                      <Copy className="w-4 h-4 text-gray-400" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="p-1 h-auto hover:bg-gray-600/50">
+                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                    </Button>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Fuel className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">Network</div>
-                    <div className="text-sm text-muted-foreground">Polygon Mumbai</div>
+              <div className="p-4 bg-gray-700/30 border border-gray-600 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Fuel className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <div className="font-medium text-white">Network</div>
+                      <div className="text-sm text-gray-400">Polygon Mumbai</div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-green-600">Active</span>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span className="text-sm text-green-400 font-medium">Active</span>
+                  </div>
                 </div>
               </div>
             </div>
             
-            <div className="mt-4 p-4 border border-border rounded-lg">
-              <h4 className="font-medium mb-2">Smart Contract Functions</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            {/* Smart Contract Functions */}
+            <div className="p-4 bg-gray-700/30 border border-gray-600 rounded-lg">
+              <div className="flex items-center space-x-2 mb-4">
+                <Zap className="w-5 h-5 text-yellow-400" />
+                <h4 className="font-medium text-white">Smart Contract Functions</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Button 
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                   onClick={handleGrantAccess}
                   disabled={grantAccessMutation.isPending}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
                   data-testid="button-grant-access-blockchain"
                 >
                   {grantAccessMutation.isPending ? "Processing..." : "Grant Access"}
@@ -286,13 +340,14 @@ export default function BlockchainStatus() {
                   variant="outline"
                   onClick={handleRevokeAccess}
                   disabled={revokeAccessMutation.isPending}
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
                   data-testid="button-revoke-access-blockchain"
                 >
                   {revokeAccessMutation.isPending ? "Processing..." : "Revoke Access"}
                 </Button>
                 <Button 
-                  className="bg-green-600 text-white hover:bg-green-700"
                   onClick={handlePayUser}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
                   data-testid="button-pay-user-blockchain"
                 >
                   Process Payment

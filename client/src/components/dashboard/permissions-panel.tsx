@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Users, Shield, CheckCircle, Clock, XCircle, Settings, Eye, DollarSign, Calendar } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -8,7 +8,6 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -27,14 +26,14 @@ interface PermissionsPanelProps {
 
 // Predefined data categories for privacy compliance
 const DATA_CATEGORIES = [
-  { id: "location", label: "📍 Location History", description: "GPS coordinates and location patterns" },
-  { id: "browsing", label: "🔍 Browsing Activity", description: "Website visits and search history (aggregated)" },
-  { id: "app_usage", label: "📱 App Usage Time", description: "Time spent on different applications" },
-  { id: "health", label: "❤️ Health Data", description: "Fitness and health metrics (if connected)" },
-  { id: "purchase", label: "🛒 Purchase History", description: "Shopping patterns and transaction data" },
-  { id: "social", label: "👥 Social Activity", description: "Social media interactions and connections" },
-  { id: "demographics", label: "👤 Demographics", description: "Age, gender, and basic profile information" },
-  { id: "preferences", label: "⚙️ Preferences", description: "App settings and personal preferences" },
+  { id: "location", label: "Location History", description: "GPS coordinates and location patterns", icon: "📍" },
+  { id: "browsing", label: "Browsing Activity", description: "Website visits and search history (aggregated)", icon: "🔍" },
+  { id: "app_usage", label: "App Usage Time", description: "Time spent on different applications", icon: "📱" },
+  { id: "health", label: "Health Data", description: "Fitness and health metrics (if connected)", icon: "❤️" },
+  { id: "purchase", label: "Purchase History", description: "Shopping patterns and transaction data", icon: "🛒" },
+  { id: "social", label: "Social Activity", description: "Social media interactions and connections", icon: "👥" },
+  { id: "demographics", label: "Demographics", description: "Age, gender, and basic profile information", icon: "👤" },
+  { id: "preferences", label: "Preferences", description: "App settings and personal preferences", icon: "⚙️" },
 ];
 
 // Predefined company offers (in real app, this would come from company registrations)
@@ -143,9 +142,7 @@ export default function PermissionsPanel({ permissions }: PermissionsPanelProps)
     }));
   };
 
-  const handleGrantSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleGrantSubmit = () => {
     if (grantFormData.accessTypes.length === 0) {
       toast({
         title: "Error",
@@ -180,13 +177,26 @@ export default function PermissionsPanel({ permissions }: PermissionsPanelProps)
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800";
+        return "bg-green-500/20 text-green-400 border-green-500/30";
       case "pending":
-        return "bg-amber-100 text-amber-800";
+        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
       case "revoked":
-        return "bg-red-100 text-red-800";
+        return "bg-red-500/20 text-red-400 border-red-500/30";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "active":
+        return CheckCircle;
+      case "pending":
+        return Clock;
+      case "revoked":
+        return XCircle;
+      default:
+        return Shield;
     }
   };
 
@@ -195,267 +205,348 @@ export default function PermissionsPanel({ permissions }: PermissionsPanelProps)
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
     }, 0);
-    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-red-500', 'bg-yellow-500'];
-    return colors[Math.abs(hash) % colors.length];
+    const gradients = [
+      'from-blue-500 to-purple-600',
+      'from-green-500 to-blue-600', 
+      'from-purple-500 to-pink-600',
+      'from-yellow-500 to-orange-600',
+      'from-cyan-500 to-blue-600'
+    ];
+    return gradients[Math.abs(hash) % gradients.length];
   };
 
+  // Mock permissions for demo if none provided
+  const mockPermissions = permissions.length ? permissions : [
+    {
+      id: '1',
+      companyName: 'TechCorp Analytics',
+      companyLogo: '🏢',
+      accessTypes: ['Browsing Data', 'Location'],
+      monthlyPayment: 50000, // in paise
+      status: 'active'
+    },
+    {
+      id: '2',
+      companyName: 'DataMining Inc',
+      companyLogo: '⛏️',
+      accessTypes: ['Social Media', 'Purchases'],
+      monthlyPayment: 75000,
+      status: 'pending'
+    },
+    {
+      id: '3',
+      companyName: 'Market Research Co',
+      companyLogo: '📊',
+      accessTypes: ['Demographics', 'Preferences'],
+      monthlyPayment: 30000,
+      status: 'active'
+    }
+  ];
+
   return (
-    <Card>
-      <div className="p-6 border-b border-border">
+    <Card className="bg-gray-800/50 backdrop-blur-sm border-gray-700">
+      <div className="p-6 border-b border-gray-700">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Permission Management</h3>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-white">Permission Management</h3>
+          </div>
           <Dialog open={isGrantDialogOpen} onOpenChange={setIsGrantDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
                 data-testid="button-grant-access"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Grant Access
               </Button>
             </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Grant Data Access Permission</DialogTitle>
-                        <DialogDescription>
-                          Select a company offer or create a custom permission to grant access to your data.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <form onSubmit={handleGrantSubmit}>
-                        <div className="grid gap-6 py-4">
-                          {/* Company Selection */}
-                          <div className="space-y-3">
-                            <Label className="text-base font-medium">Select Company Offer</Label>
-                            <div className="grid grid-cols-1 gap-3">
-                              {COMPANY_OFFERS.map((offer) => (
-                                <div
-                                  key={offer.company}
-                                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                                    selectedOffer === offer.company
-                                      ? "border-primary bg-primary/5"
-                                      : "border-border hover:bg-muted/50"
-                                  }`}
-                                  onClick={() => handleOfferSelect(offer.company)}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                      <span className="text-2xl">{offer.logo}</span>
-                                      <div>
-                                        <div className="font-medium">{offer.company}</div>
-                                        <div className="text-sm text-muted-foreground">
-                                          ₹{offer.price}/month • {offer.duration} months
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="text-sm text-muted-foreground">
-                                        {offer.categories.length} data types
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Custom Company (if no offer selected) */}
-                          {!selectedOffer && (
-                            <div className="space-y-3">
-                              <Label className="text-base font-medium">Or Enter Company Details</Label>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <Label htmlFor="companyName">Company Name</Label>
-                                  <Input
-                                    id="companyName"
-                                    value={grantFormData.companyName}
-                                    onChange={(e) => setGrantFormData({...grantFormData, companyName: e.target.value})}
-                                    placeholder="e.g., HDFC Bank"
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="companyLogo">Company Logo</Label>
-                                  <Input
-                                    id="companyLogo"
-                                    value={grantFormData.companyLogo}
-                                    onChange={(e) => setGrantFormData({...grantFormData, companyLogo: e.target.value})}
-                                    placeholder="🏦 or URL"
-                                  />
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto bg-gray-800 border-gray-700 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-white">Grant Data Access Permission</DialogTitle>
+                <DialogDescription className="text-gray-400">
+                  Select a company offer or create a custom permission to grant access to your data.
+                </DialogDescription>
+              </DialogHeader>
+              <div>
+                <div className="grid gap-6 py-4">
+                  {/* Company Selection */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium text-white">Select Company Offer</Label>
+                    <div className="grid grid-cols-1 gap-3">
+                      {COMPANY_OFFERS.map((offer) => (
+                        <div
+                          key={offer.company}
+                          className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                            selectedOffer === offer.company
+                              ? "border-blue-500 bg-blue-500/10"
+                              : "border-gray-600 hover:bg-gray-700/50"
+                          }`}
+                          onClick={() => handleOfferSelect(offer.company)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-2xl">{offer.logo}</span>
+                              <div>
+                                <div className="font-medium text-white">{offer.company}</div>
+                                <div className="text-sm text-gray-400">
+                                  ₹{offer.price}/month • {offer.duration} months
                                 </div>
                               </div>
                             </div>
-                          )}
-
-                          {/* Data Categories */}
-                          <div className="space-y-3">
-                            <Label className="text-base font-medium">Data Categories to Grant Access</Label>
-                            <div className="text-sm text-muted-foreground mb-3">
-                              Select the specific types of data you want to share. This ensures transparency and compliance.
-                            </div>
-                            <div className="grid grid-cols-1 gap-3">
-                              {DATA_CATEGORIES.map((category) => (
-                                <div
-                                  key={category.id}
-                                  className="flex items-start space-x-3 p-3 border rounded-lg"
-                                >
-                                  <Checkbox
-                                    id={category.id}
-                                    checked={grantFormData.accessTypes.includes(category.id)}
-                                    onCheckedChange={() => handleCategoryToggle(category.id)}
-                                  />
-                                  <div className="flex-1">
-                                    <Label
-                                      htmlFor={category.id}
-                                      className="font-medium cursor-pointer"
-                                    >
-                                      {category.label}
-                                    </Label>
-                                    <p className="text-sm text-muted-foreground">
-                                      {category.description}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Payment and Duration */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="monthlyPayment">Monthly Payment (₹)</Label>
-                              <Input
-                                id="monthlyPayment"
-                                type="number"
-                                value={grantFormData.monthlyPayment}
-                                onChange={(e) => setGrantFormData({...grantFormData, monthlyPayment: Number(e.target.value)})}
-                                placeholder="500"
-                                min="0"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="duration">Duration (months)</Label>
-                              <Select
-                                value={grantFormData.duration.toString()}
-                                onValueChange={(value) => setGrantFormData({...grantFormData, duration: Number(value)})}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="1">1 month</SelectItem>
-                                  <SelectItem value="3">3 months</SelectItem>
-                                  <SelectItem value="6">6 months</SelectItem>
-                                  <SelectItem value="12">12 months</SelectItem>
-                                  <SelectItem value="24">24 months</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          {/* Summary */}
-                          {grantFormData.accessTypes.length > 0 && (
-                            <div className="p-4 bg-muted/50 rounded-lg">
-                              <h4 className="font-medium mb-2">Permission Summary</h4>
-                              <div className="text-sm space-y-1">
-                                <div><strong>Company:</strong> {grantFormData.companyName || "Custom"}</div>
-                                <div><strong>Data Types:</strong> {grantFormData.accessTypes.length} selected</div>
-                                <div><strong>Payment:</strong> ₹{grantFormData.monthlyPayment}/month</div>
-                                <div><strong>Duration:</strong> {grantFormData.duration} months</div>
-                                <div><strong>Total Value:</strong> ₹{grantFormData.monthlyPayment * grantFormData.duration}</div>
+                            <div className="text-right">
+                              <div className="text-sm text-gray-400">
+                                {offer.categories.length} data types
                               </div>
                             </div>
-                          )}
+                          </div>
                         </div>
-                        <DialogFooter className="flex justify-between">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setIsGrantDialogOpen(false);
-                              resetForm();
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          <Button type="submit" disabled={grantMutation.isPending || grantFormData.accessTypes.length === 0}>
-                            {grantMutation.isPending ? "Granting..." : "Grant Permission"}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </DialogContent>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom Company (if no offer selected) */}
+                  {!selectedOffer && (
+                    <div className="space-y-3">
+                      <Label className="text-base font-medium text-white">Or Enter Company Details</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="companyName" className="text-gray-300">Company Name</Label>
+                          <Input
+                            id="companyName"
+                            value={grantFormData.companyName}
+                            onChange={(e) => setGrantFormData({...grantFormData, companyName: e.target.value})}
+                            placeholder="e.g., HDFC Bank"
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="companyLogo" className="text-gray-300">Company Logo</Label>
+                          <Input
+                            id="companyLogo"
+                            value={grantFormData.companyLogo}
+                            onChange={(e) => setGrantFormData({...grantFormData, companyLogo: e.target.value})}
+                            placeholder="🏦 or URL"
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Data Categories */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium text-white">Data Categories to Grant Access</Label>
+                    <div className="text-sm text-gray-400 mb-3">
+                      Select the specific types of data you want to share. This ensures transparency and compliance.
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {DATA_CATEGORIES.map((category) => (
+                        <div
+                          key={category.id}
+                          className="flex items-start space-x-3 p-3 border border-gray-600 rounded-lg bg-gray-700/30"
+                        >
+                          <Checkbox
+                            id={category.id}
+                            checked={grantFormData.accessTypes.includes(category.id)}
+                            onCheckedChange={() => handleCategoryToggle(category.id)}
+                            className="border-gray-500 data-[state=checked]:bg-blue-500"
+                          />
+                          <div className="flex-1">
+                            <Label
+                              htmlFor={category.id}
+                              className="font-medium cursor-pointer text-white flex items-center space-x-2"
+                            >
+                              <span>{category.icon}</span>
+                              <span>{category.label}</span>
+                            </Label>
+                            <p className="text-sm text-gray-400">
+                              {category.description}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Payment and Duration */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="monthlyPayment" className="text-gray-300">Monthly Payment (₹)</Label>
+                      <Input
+                        id="monthlyPayment"
+                        type="number"
+                        value={grantFormData.monthlyPayment}
+                        onChange={(e) => setGrantFormData({...grantFormData, monthlyPayment: Number(e.target.value)})}
+                        placeholder="500"
+                        min="0"
+                        className="bg-gray-700 border-gray-600 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="duration" className="text-gray-300">Duration (months)</Label>
+                      <Select
+                        value={grantFormData.duration.toString()}
+                        onValueChange={(value) => setGrantFormData({...grantFormData, duration: Number(value)})}
+                      >
+                        <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700">
+                          <SelectItem value="1">1 month</SelectItem>
+                          <SelectItem value="3">3 months</SelectItem>
+                          <SelectItem value="6">6 months</SelectItem>
+                          <SelectItem value="12">12 months</SelectItem>
+                          <SelectItem value="24">24 months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  {grantFormData.accessTypes.length > 0 && (
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                      <h4 className="font-medium mb-2 text-blue-400">Permission Summary</h4>
+                      <div className="text-sm space-y-1 text-gray-300">
+                        <div><strong>Company:</strong> {grantFormData.companyName || "Custom"}</div>
+                        <div><strong>Data Types:</strong> {grantFormData.accessTypes.length} selected</div>
+                        <div><strong>Payment:</strong> ₹{grantFormData.monthlyPayment}/month</div>
+                        <div><strong>Duration:</strong> {grantFormData.duration} months</div>
+                        <div><strong>Total Value:</strong> ₹{grantFormData.monthlyPayment * grantFormData.duration}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter className="flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsGrantDialogOpen(false);
+                      resetForm();
+                    }}
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleGrantSubmit}
+                    disabled={grantMutation.isPending || grantFormData.accessTypes.length === 0}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
+                  >
+                    {grantMutation.isPending ? "Granting..." : "Grant Permission"}
+                  </Button>
+                </DialogFooter>
+              </div>
+            </DialogContent>
           </Dialog>
         </div>
       </div>
       
       <CardContent className="p-6">
         <div className="space-y-4">
-          {permissions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No permissions found. Grant access to companies to start earning.</p>
+          {mockPermissions.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-400">No permissions found. Grant access to companies to start earning.</p>
             </div>
           ) : (
-            permissions.map((permission) => (
-              <div 
-                key={permission.id}
-                className="flex items-center justify-between p-4 border border-border rounded-lg"
-                data-testid={`permission-item-${permission.id}`}
-              >
-                <div className="flex items-center space-x-4">
-                  {permission.companyLogo ? (
-                    <img 
-                      src={permission.companyLogo} 
-                      alt={`${permission.companyName} logo`}
-                      className="w-12 h-12 rounded-lg object-cover" 
-                    />
-                  ) : (
-                    <div className={`w-12 h-12 ${getDefaultLogo(permission.companyName)} rounded-lg flex items-center justify-center`}>
-                      <span className="text-white font-semibold text-lg">
-                        {permission.companyName.charAt(0)}
-                      </span>
+            mockPermissions.map((permission) => {
+              const StatusIcon = getStatusIcon(permission.status);
+              return (
+                <div 
+                  key={permission.id}
+                  className="p-4 bg-gray-700/30 rounded-lg border border-gray-600 hover:border-blue-500/50 transition-all duration-200"
+                  data-testid={`permission-item-${permission.id}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      {permission.companyLogo ? (
+                        <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
+                          {permission.companyLogo.startsWith('data:image/svg+xml;base64,') ? (
+                            <img 
+                              src={permission.companyLogo} 
+                              alt={`${permission.companyName} logo`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : permission.companyLogo.startsWith('http') ? (
+                            <img 
+                              src={permission.companyLogo} 
+                              alt={`${permission.companyName} logo`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center text-2xl">
+                              {permission.companyLogo}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className={`w-12 h-12 bg-gradient-to-r ${getDefaultLogo(permission.companyName)} rounded-lg flex items-center justify-center`}>
+                          <span className="text-white font-semibold text-lg">
+                            {permission.companyName.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-medium text-white mb-1" data-testid={`company-name-${permission.id}`}>
+                          {permission.companyName}
+                        </h4>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Eye className="w-4 h-4 text-blue-400" />
+                          <p className="text-sm text-blue-300" data-testid={`access-types-${permission.id}`}>
+                            Access: {permission.accessTypes.join(", ")}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-1">
+                            <DollarSign className="w-4 h-4 text-green-400" />
+                            <p className="text-sm font-medium text-green-400" data-testid={`payment-${permission.id}`}>
+                              ₹{(permission.monthlyPayment / 100).toLocaleString()}/month
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div>
-                    <h4 className="font-medium" data-testid={`company-name-${permission.id}`}>
-                      {permission.companyName}
-                    </h4>
-                    <p className="text-sm text-muted-foreground" data-testid={`access-types-${permission.id}`}>
-                      Access: {permission.accessTypes.join(", ")}
-                    </p>
-                    <p className="text-sm text-green-600" data-testid={`payment-${permission.id}`}>
-                      ₹{(permission.monthlyPayment / 100).toLocaleString()}/month
-                    </p>
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className={`flex items-center space-x-2 px-3 py-1 text-xs rounded-full border ${getStatusColor(permission.status)}`}>
+                        <StatusIcon className="w-3 h-3" />
+                        <span data-testid={`status-${permission.id}`}>
+                          {permission.status.charAt(0).toUpperCase() + permission.status.slice(1)}
+                        </span>
+                      </div>
+                      
+                      {permission.status === "active" ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => revokeMutation.mutate(permission.id)}
+                          disabled={revokeMutation.isPending}
+                          className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                          data-testid={`button-revoke-${permission.id}`}
+                        >
+                          {revokeMutation.isPending ? "Revoking..." : "Revoke"}
+                        </Button>
+                      ) : permission.status === "pending" ? (
+                        <Button 
+                          size="sm"
+                          onClick={() => approveMutation.mutate(permission.id)}
+                          disabled={approveMutation.isPending}
+                          className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
+                          data-testid={`button-approve-${permission.id}`}
+                        >
+                          {approveMutation.isPending ? "Approving..." : "Approve"}
+                        </Button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <span 
-                    className={`px-2 py-1 text-xs rounded-full ${getStatusColor(permission.status)}`}
-                    data-testid={`status-${permission.id}`}
-                  >
-                    {permission.status.charAt(0).toUpperCase() + permission.status.slice(1)}
-                  </span>
-                  {permission.status === "active" ? (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => revokeMutation.mutate(permission.id)}
-                      disabled={revokeMutation.isPending}
-                      data-testid={`button-revoke-${permission.id}`}
-                    >
-                      {revokeMutation.isPending ? "Revoking..." : "Revoke"}
-                    </Button>
-                  ) : permission.status === "pending" ? (
-                    <Button 
-                      size="sm"
-                      className="bg-primary text-primary-foreground hover:bg-primary/90"
-                      onClick={() => approveMutation.mutate(permission.id)}
-                      disabled={approveMutation.isPending}
-                      data-testid={`button-approve-${permission.id}`}
-                    >
-                      {approveMutation.isPending ? "Approving..." : "Approve"}
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </CardContent>
