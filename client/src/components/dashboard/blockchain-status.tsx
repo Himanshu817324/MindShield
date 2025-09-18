@@ -5,14 +5,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useState } from "react";
+// import { useState } from "react";
 
-const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Will be updated after deployment
+const CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000' as string; // Will be updated after deployment
 
 export default function BlockchainStatus() {
   const { toast } = useToast();
   const { account, connectWallet, isConnected, isLoading: walletLoading, error: walletError } = useWeb3();
-  const [isProcessing, setIsProcessing] = useState(false);
+  // const [isProcessing] = useState(false);
 
   // Get blockchain earnings
   const { data: blockchainEarnings } = useQuery({
@@ -26,32 +26,32 @@ export default function BlockchainStatus() {
     enabled: !!account,
   });
 
-  const registerUserMutation = useMutation({
-    mutationFn: async (data: { username: string; walletAddress: string }) => {
-      const response = await apiRequest("POST", "/api/blockchain/register", data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Success",
-        description: "User registered on blockchain successfully!",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to register user on blockchain",
-        variant: "destructive",
-      });
-    },
-  });
+  // const registerUserMutation = useMutation({
+  //   mutationFn: async (data: { username: string; walletAddress: string }) => {
+  //     const response = await apiRequest("POST", "/api/blockchain/register", data);
+  //     return response.json();
+  //   },
+  //   onSuccess: () => {
+  //     toast({
+  //       title: "Success",
+  //       description: "User registered on blockchain successfully!",
+  //     });
+  //   },
+  //   onError: (error: any) => {
+  //     toast({
+  //       title: "Error",
+  //       description: error.message || "Failed to register user on blockchain",
+  //       variant: "destructive",
+  //     });
+  //   },
+  // });
 
   const grantAccessMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await apiRequest("POST", "/api/blockchain/grant-access", data);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast({
         title: "Success",
         description: "Access granted on blockchain successfully!",
@@ -71,7 +71,7 @@ export default function BlockchainStatus() {
       const response = await apiRequest("POST", "/api/blockchain/revoke-access", data);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast({
         title: "Success",
         description: "Access revoked on blockchain successfully!",
@@ -209,13 +209,13 @@ export default function BlockchainStatus() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="text-center p-4 border border-border rounded-lg">
                 <div className="text-2xl font-bold text-primary">
-                  {blockchainEarnings?.earnings || "0.00"} ETH
+                  {(blockchainEarnings as any)?.earnings || "0.00"} ETH
                 </div>
                 <div className="text-sm text-muted-foreground">Total Earnings</div>
               </div>
               <div className="text-center p-4 border border-border rounded-lg">
                 <div className="text-2xl font-bold text-primary">
-                  {blockchainLicenses?.licenses?.length || 0}
+                  {(blockchainLicenses as any)?.licenses?.length || 0}
                 </div>
                 <div className="text-sm text-muted-foreground">Active Licenses</div>
               </div>

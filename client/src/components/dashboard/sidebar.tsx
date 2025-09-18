@@ -1,5 +1,5 @@
 import { Shield, BarChart3, ShieldCheck, Coins, Settings, LogOut } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+// import { useQuery } from "@tanstack/react-query";
 import Sidebar from "@/components/dashboard/sidebar";
 import Header from "@/components/dashboard/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import {
   User, 
   Bell, 
   Shield, 
-  CreditCard, 
+  // CreditCard, 
   Download, 
   Trash2,
   Wallet,
@@ -26,7 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useWeb3 } from "@/contexts/Web3Context";
 
 export default function SettingsPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { account, connectWallet, isConnected, error: walletError } = useWeb3();
   const [settings, setSettings] = useState({
     notifications: true,

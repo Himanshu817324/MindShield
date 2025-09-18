@@ -1,4 +1,4 @@
-import { Bell, RefreshCw, LogOut, User } from "lucide-react";
+import { Bell, RefreshCw, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";

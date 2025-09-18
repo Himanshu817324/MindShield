@@ -92,7 +92,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleChainChanged = (chainId: string) => {
+  const handleChainChanged = (_chainId: string) => {
     // Reload the page when chain changes
     window.location.reload();
   };

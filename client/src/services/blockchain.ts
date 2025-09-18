@@ -121,7 +121,7 @@ export class BlockchainService {
   private contract: ethers.Contract;
   private signer: ethers.JsonRpcSigner;
 
-  constructor(provider: ethers.BrowserProvider, signer: ethers.JsonRpcSigner) {
+  constructor(_provider: ethers.BrowserProvider, signer: ethers.JsonRpcSigner) {
     this.signer = signer;
     this.contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
   }

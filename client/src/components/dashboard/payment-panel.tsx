@@ -4,7 +4,7 @@ import { CreditCard, History } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
+// import { useLocation } from "wouter";
 
 interface PaymentPanelProps {
   earningsData?: {

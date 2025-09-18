@@ -125,7 +125,7 @@ export default function Checkout() {
   useEffect(() => {
     // Get payment details from URL params or localStorage
     const urlParams = new URLSearchParams(window.location.search);
-    const paymentIntentId = urlParams.get('payment_intent');
+    // const paymentIntentId = urlParams.get('payment_intent');
     const withdrawalAmount = urlParams.get('amount');
     
     // Get amount from URL params or localStorage

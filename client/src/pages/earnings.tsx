@@ -136,7 +136,16 @@ export default function EarningsPage() {
           {/* Earnings Calculator and Payment Panel */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <EarningsCalculator />
-            <PaymentPanel earningsData={earningsData} />
+            <PaymentPanel earningsData={earningsData ? {
+              ...earningsData,
+              pendingPayments: 0,
+              transactions: earningsData.transactions?.map(t => ({
+                id: t.id,
+                amount: t.amount,
+                status: t.status,
+                createdAt: t.date
+              })) || []
+            } : undefined} />
           </div>
 
           {/* Transaction History */}
