@@ -1,0 +1,16 @@
+{
+  "users": {
+    "jl91nn27j": {
+      "id": "jl91nn27j",
+      "username": "testuser",
+      "email": "test@1.com",
+      "password": "$2b$10$9dll.IIhM/hQx5cKzH4dS./MRhM8yiI06GWNtkfHPvV8cw6WHUoFy",
+      "createdAt": "2025-09-18T07:26:57.352Z",
+      "stripeCustomerId": null,
+      "stripeSubscriptionId": null,
+      "walletAddress": null
+    }
+  },
+  "permissions": {},
+  "earnings": {}
+}

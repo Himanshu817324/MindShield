@@ -18,8 +18,18 @@ app.use(cors({
     'http://localhost:5174',
     'https://mindshieldai.netlify.app'
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept']
 }));
+
+// Log all requests
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 app.use(express.json());
 
 // MongoDB connection
@@ -49,7 +59,8 @@ if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.startsWith('s
   });
   console.log('✅ Stripe configured');
 } else {
-  console.log('⚠️  Stripe not configured');
+  console.log('⚠️  Stripe not configured - using mock data for payments');
+  console.log('   To enable Stripe: Set STRIPE_SECRET_KEY environment variable');
 }
 
 // Mock data for development
@@ -57,20 +68,67 @@ const mockUsers = new Map();
 const mockPermissions = new Map();
 const mockEarnings = new Map();
 
+// Load mock data from file on startup
+import fs from 'fs';
+import path from 'path';
+
+const MOCK_DATA_FILE = path.join(process.cwd(), 'mock-data.json');
+
+function loadMockData() {
+  try {
+    if (fs.existsSync(MOCK_DATA_FILE)) {
+      const data = JSON.parse(fs.readFileSync(MOCK_DATA_FILE, 'utf8'));
+      if (data.users) {
+        Object.entries(data.users).forEach(([id, user]) => {
+          mockUsers.set(id, user);
+        });
+      }
+      console.log('✅ Loaded mock data from file');
+    }
+  } catch (error) {
+    console.log('⚠️  Could not load mock data:', error.message);
+  }
+}
+
+function saveMockData() {
+  try {
+    const data = {
+      users: Object.fromEntries(mockUsers),
+      permissions: Object.fromEntries(mockPermissions),
+      earnings: Object.fromEntries(mockEarnings)
+    };
+    fs.writeFileSync(MOCK_DATA_FILE, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.log('⚠️  Could not save mock data:', error.message);
+  }
+}
+
+// Load data on startup
+loadMockData();
+
 // Auth middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
+  console.log('🔐 Auth Debug:', {
+    hasAuthHeader: !!authHeader,
+    authHeader: authHeader,
+    token: token ? token.substring(0, 20) + '...' : 'none'
+  });
+
   if (!token) {
+    console.log('❌ No token provided');
     return res.status(401).json({ message: 'Access token required' });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mindshield-secret');
+    console.log('✅ Token verified for user:', decoded.userId);
     req.userId = decoded.userId;
     next();
   } catch (error) {
+    console.log('❌ Token verification failed:', error.message);
     return res.status(403).json({ message: 'Invalid or expired token' });
   }
 };
@@ -120,6 +178,7 @@ app.post('/api/auth/register', async (req, res) => {
       await db.collection('users').insertOne(user);
     } else {
       mockUsers.set(user.id, user);
+      saveMockData(); // Save to file
     }
 
     // Generate token
@@ -142,27 +201,39 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   try {
+    console.log('🔐 Login attempt - Request body:', req.body);
     const { email, password } = req.body;
 
     if (!email || !password) {
+      console.log('❌ Missing email or password');
       return res.status(400).json({ message: 'Email and password are required' });
     }
+
+    console.log('🔍 Looking for user with email:', email);
 
     // Find user
     let user;
     if (db) {
       user = await db.collection('users').findOne({ email });
+      console.log('🔍 MongoDB user lookup result:', user ? 'Found' : 'Not found');
     } else {
       user = Array.from(mockUsers.values()).find(u => u.email === email);
+      console.log('🔍 Mock user lookup result:', user ? 'Found' : 'Not found');
+      console.log('🔍 Available mock users:', Array.from(mockUsers.values()).map(u => u.email));
     }
 
     if (!user) {
+      console.log('❌ User not found for email:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    console.log('🔍 User found, checking password...');
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
+    console.log('🔍 Password check result:', isValidPassword);
+    
     if (!isValidPassword) {
+      console.log('❌ Invalid password for user:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -186,12 +257,43 @@ app.post('/api/auth/login', async (req, res) => {
 
 // Protected routes
 app.get('/api/dashboard', authenticateToken, (req, res) => {
-  res.json({
+  const mockDashboard = {
     privacyScore: 62,
-    monthlyEarnings: 0,
-    activePermissions: 0,
-    totalDataPoints: 150
-  });
+    monthlyEarnings: 1250, // ₹12.50
+    activePermissions: 3,
+    pendingPermissions: 1,
+    dataRequests: 15,
+    totalDataPoints: 150,
+    permissions: [
+      {
+        id: 'perm_1',
+        companyName: 'TechCorp Analytics',
+        companyLogo: 'https://via.placeholder.com/40x40/4F46E5/FFFFFF?text=TC',
+        accessTypes: ['location', 'browsing_history'],
+        monthlyPayment: 500, // ₹5.00
+        status: 'active'
+      },
+      {
+        id: 'perm_2',
+        companyName: 'DataInsights Inc',
+        companyLogo: 'https://via.placeholder.com/40x40/059669/FFFFFF?text=DI',
+        accessTypes: ['demographics', 'purchase_history'],
+        monthlyPayment: 750, // ₹7.50
+        status: 'active'
+      },
+      {
+        id: 'perm_3',
+        companyName: 'Market Research Co',
+        companyLogo: 'https://via.placeholder.com/40x40/DC2626/FFFFFF?text=MR',
+        accessTypes: ['social_media', 'app_usage'],
+        monthlyPayment: 300, // ₹3.00
+        status: 'pending'
+      }
+    ]
+  };
+  
+  console.log('📊 Mock dashboard data sent for user:', req.userId);
+  res.json(mockDashboard);
 });
 
 app.get('/api/privacy', authenticateToken, (req, res) => {
@@ -204,18 +306,51 @@ app.get('/api/privacy', authenticateToken, (req, res) => {
 });
 
 app.get('/api/earnings', authenticateToken, (req, res) => {
-  res.json({
-    totalEarnings: 0,
-    availableBalance: 0,
-    pendingPayments: 0,
-    monthlyEarnings: 0
-  });
+  // Return mock earnings data for development
+  const mockEarnings = {
+    totalEarnings: 1250, // ₹12.50
+    availableBalance: 850, // ₹8.50
+    pendingPayments: 400, // ₹4.00
+    monthlyEarnings: 1250,
+    transactions: [
+      {
+        id: 'tx_1',
+        amount: 500,
+        status: 'completed',
+        createdAt: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+      },
+      {
+        id: 'tx_2',
+        amount: 350,
+        status: 'completed',
+        createdAt: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+      },
+      {
+        id: 'tx_3',
+        amount: 400,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      }
+    ]
+  };
+  
+  console.log('💰 Mock earnings data sent for user:', req.userId);
+  res.json(mockEarnings);
 });
 
 app.post('/api/earnings/pay', authenticateToken, async (req, res) => {
   try {
     if (!stripe) {
-      return res.status(400).json({ message: 'Stripe not configured' });
+      // Return mock payment data for development
+      const { amount } = req.body;
+      const mockClientSecret = `pi_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      console.log('💰 Mock payment created:', { amount, userId: req.userId });
+      
+      return res.json({
+        clientSecret: mockClientSecret,
+        message: 'Mock payment created (Stripe not configured)'
+      });
     }
 
     const { amount } = req.body;
@@ -234,6 +369,25 @@ app.post('/api/earnings/pay', authenticateToken, async (req, res) => {
     console.error('Payment error:', error);
     res.status(500).json({ message: 'Payment failed' });
   }
+});
+
+// Catch-all handler for undefined routes
+app.use('*', (req, res) => {
+  console.log('❌ Route not found:', req.method, req.originalUrl);
+  res.status(404).json({ 
+    message: 'Route not found',
+    method: req.method,
+    url: req.originalUrl,
+    availableRoutes: [
+      'GET /api/health',
+      'POST /api/auth/register',
+      'POST /api/auth/login',
+      'GET /api/dashboard',
+      'GET /api/privacy',
+      'GET /api/earnings',
+      'POST /api/earnings/pay'
+    ]
+  });
 });
 
 // Start server
