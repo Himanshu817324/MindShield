@@ -4,7 +4,7 @@ import { CreditCard, History } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-// import { useLocation } from "wouter";
+import { useLocation } from "wouter";
 
 interface PaymentPanelProps {
   earningsData?: {
@@ -21,33 +21,14 @@ interface PaymentPanelProps {
 
 export default function PaymentPanel({ earningsData }: PaymentPanelProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   
   const availableBalance = earningsData?.availableBalance || 2450;
   const pendingPayments = earningsData?.pendingPayments || 850;
 
-  const withdrawMutation = useMutation({
-    mutationFn: (amount: number) =>
-      apiRequest("POST", "/api/earnings/pay", { amount }),
-    onSuccess: async (response) => {
-      const result = await response.json();
-      if (result.checkoutUrl) {
-        window.open(result.checkoutUrl, '_blank');
-      }
-      toast({
-        title: "Withdrawal Initiated",
-        description: "Your withdrawal request has been processed.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to initiate withdrawal. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleWithdraw = () => {
+    const minAmount = 5000; // ₹50.00 in paise
+    
     if (availableBalance <= 0) {
       toast({
         title: "Insufficient Balance",
@@ -56,7 +37,21 @@ export default function PaymentPanel({ earningsData }: PaymentPanelProps) {
       });
       return;
     }
-    withdrawMutation.mutate(availableBalance);
+    
+    if (availableBalance < minAmount) {
+      toast({
+        title: "Minimum Amount Required",
+        description: `Minimum withdrawal amount is ₹${minAmount / 100}. You have ₹${(availableBalance / 100).toFixed(2)} available.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Store withdrawal amount in localStorage for checkout page
+    localStorage.setItem('withdrawalAmount', availableBalance.toString());
+    
+    // Navigate to checkout page
+    setLocation(`/checkout?amount=${availableBalance}`);
   };
 
   const recentTransactions = [
@@ -96,11 +91,10 @@ export default function PaymentPanel({ earningsData }: PaymentPanelProps) {
             <Button 
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
               onClick={handleWithdraw}
-              disabled={withdrawMutation.isPending}
               data-testid="button-withdraw"
             >
               <CreditCard className="mr-2 h-4 w-4" />
-              {withdrawMutation.isPending ? "Processing..." : "Withdraw to Bank Account"}
+              Withdraw to Bank Account
             </Button>
             
             <Button 

@@ -1,5 +1,9 @@
 // Simple Express server for deployment
 import 'dotenv/config';
+import { config } from 'dotenv';
+
+// Load environment variables from root .env file
+config({ path: '../.env' });
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
@@ -268,7 +272,7 @@ app.get('/api/dashboard', authenticateToken, (req, res) => {
       {
         id: 'perm_1',
         companyName: 'TechCorp Analytics',
-        companyLogo: 'https://via.placeholder.com/40x40/4F46E5/FFFFFF?text=TC',
+        companyLogo: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzRGNjVFNSIvPgo8dGV4dCB4PSIyMCIgeT0iMjYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UQzwvdGV4dD4KPC9zdmc+',
         accessTypes: ['location', 'browsing_history'],
         monthlyPayment: 500, // ₹5.00
         status: 'active'
@@ -276,7 +280,7 @@ app.get('/api/dashboard', authenticateToken, (req, res) => {
       {
         id: 'perm_2',
         companyName: 'DataInsights Inc',
-        companyLogo: 'https://via.placeholder.com/40x40/059669/FFFFFF?text=DI',
+        companyLogo: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzA1OTY2OSIvPgo8dGV4dCB4PSIyMCIgeT0iMjYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ESTwvdGV4dD4KPC9zdmc+',
         accessTypes: ['demographics', 'purchase_history'],
         monthlyPayment: 750, // ₹7.50
         status: 'active'
@@ -284,7 +288,7 @@ app.get('/api/dashboard', authenticateToken, (req, res) => {
       {
         id: 'perm_3',
         companyName: 'Market Research Co',
-        companyLogo: 'https://via.placeholder.com/40x40/DC2626/FFFFFF?text=MR',
+        companyLogo: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iI0RDMjYyNiIvPgo8dGV4dCB4PSIyMCIgeT0iMjYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5NUjwvdGV4dD4KPC9zdmc+',
         accessTypes: ['social_media', 'app_usage'],
         monthlyPayment: 300, // ₹3.00
         status: 'pending'
@@ -305,47 +309,93 @@ app.get('/api/privacy', authenticateToken, (req, res) => {
   });
 });
 
-app.get('/api/earnings', authenticateToken, (req, res) => {
-  // Return mock earnings data for development
-  const mockEarnings = {
-    totalEarnings: 1250, // ₹12.50
-    availableBalance: 850, // ₹8.50
-    pendingPayments: 400, // ₹4.00
-    monthlyEarnings: 1250,
-    transactions: [
-      {
-        id: 'tx_1',
-        amount: 500,
-        status: 'completed',
-        createdAt: new Date(Date.now() - 86400000).toISOString() // 1 day ago
-      },
-      {
-        id: 'tx_2',
-        amount: 350,
-        status: 'completed',
-        createdAt: new Date(Date.now() - 172800000).toISOString() // 2 days ago
-      },
-      {
-        id: 'tx_3',
-        amount: 400,
-        status: 'pending',
-        createdAt: new Date().toISOString()
+  app.get('/api/earnings', authenticateToken, (req, res) => {
+    // Return mock earnings data for development
+    const mockEarnings = {
+      totalEarnings: 5000, // ₹50.00
+      availableBalance: 5000, // ₹50.00 (minimum for Stripe)
+      pendingPayments: 1000, // ₹10.00
+      monthlyEarnings: 5000,
+      transactions: [
+        {
+          id: 'tx_1',
+          amount: 500,
+          status: 'completed',
+          createdAt: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+        },
+        {
+          id: 'tx_2',
+          amount: 350,
+          status: 'completed',
+          createdAt: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+        },
+        {
+          id: 'tx_3',
+          amount: 400,
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        }
+      ]
+    };
+    
+    console.log('💰 Mock earnings data sent for user:', req.userId);
+    res.json(mockEarnings);
+  });
+
+  // Earnings calculator endpoint
+  app.post('/api/earnings/calc', authenticateToken, (req, res) => {
+    try {
+      const { platforms, hours } = req.body;
+      
+      if (!platforms || !Array.isArray(platforms) || !hours) {
+        return res.status(400).json({ message: "Platforms array and hours are required" });
       }
-    ]
-  };
-  
-  console.log('💰 Mock earnings data sent for user:', req.userId);
-  res.json(mockEarnings);
-});
+
+      console.log('🧮 Earnings calculation request:', { platforms, hours, userId: req.userId });
+
+      // Calculate estimated earnings based on platforms and usage hours
+      const baseRates = {
+        google: 50,
+        facebook: 40,
+        instagram: 35,
+        twitter: 30,
+        linkedin: 45,
+        youtube: 55
+      };
+
+      let totalEstimated = 0;
+      platforms.forEach((platform) => {
+        const rate = baseRates[platform.toLowerCase()] || 25;
+        totalEstimated += (rate * hours * 30) / 24; // Monthly calculation
+      });
+
+      const estimated = Math.round(totalEstimated);
+      console.log('💰 Calculated earnings:', estimated);
+
+      res.json({ estimated });
+    } catch (error) {
+      console.error('❌ Earnings calculation error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
 
 app.post('/api/earnings/pay', authenticateToken, async (req, res) => {
   try {
+    const { amount } = req.body;
+    console.log('💰 Payment request:', { amount, userId: req.userId });
+
+    // Validate minimum amount (₹50.00 = 5000 paise)
+    const minAmount = 5000; // ₹50.00 in paise
+    if (amount < minAmount) {
+      return res.status(400).json({ 
+        message: `Minimum withdrawal amount is ₹${minAmount / 100}. You requested ₹${(amount / 100).toFixed(2)}.`,
+        minAmount: minAmount
+      });
+    }
+
     if (!stripe) {
-      // Return mock payment data for development
-      const { amount } = req.body;
+      console.log('⚠️ Stripe not configured, returning mock data');
       const mockClientSecret = `pi_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      console.log('💰 Mock payment created:', { amount, userId: req.userId });
       
       return res.json({
         clientSecret: mockClientSecret,
@@ -353,21 +403,26 @@ app.post('/api/earnings/pay', authenticateToken, async (req, res) => {
       });
     }
 
-    const { amount } = req.body;
+    // Create PaymentIntent with proper amount (convert from paise to cents)
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount || 2000, // $20.00
-      currency: 'usd',
+      amount: amount, // Amount in paise (₹50.00 = 5000 paise)
+      currency: 'inr', // Indian Rupees
       metadata: {
         userId: req.userId
-      }
+      },
+      description: `Withdrawal of ₹${(amount / 100).toFixed(2)}`
     });
 
+    console.log('✅ PaymentIntent created:', paymentIntent.id);
     res.json({
       clientSecret: paymentIntent.client_secret
     });
   } catch (error) {
-    console.error('Payment error:', error);
-    res.status(500).json({ message: 'Payment failed' });
+    console.error('❌ Payment error:', error);
+    res.status(500).json({ 
+      message: 'Payment failed',
+      error: error.message 
+    });
   }
 });
 

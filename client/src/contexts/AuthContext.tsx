@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+const API_BASE_URL = 'http://localhost:5000';
+
 interface User {
   id: string;
   username: string;
@@ -66,7 +68,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -98,7 +99,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (username: string, email: string, password: string) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
