@@ -515,7 +515,7 @@ export default function LandingPage() {
                   onPlay={() => setIsVideoPlaying(true)}
                   onPause={() => setIsVideoPlaying(false)}
                 >
-                  <source src="/MindShield_hero.mp4" type="video/mp4" />
+                  <source src="/MindShield_demo.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
                 
@@ -530,7 +530,7 @@ export default function LandingPage() {
                         <Play className="w-8 h-8 text-white ml-1" />
                       </div>
                       <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2 drop-shadow-lg">Watch Demo</h3>
-                      <p className="text-gray-300 drop-shadow-md">Click to play 2-minute overview of MindShield features</p>
+                      <p className="text-gray-300 drop-shadow-md">Click to play a short overview of MindShield's Motive and Features</p>
                     </div>
                   </div>
                 )}
